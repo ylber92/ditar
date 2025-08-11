@@ -1,165 +1,152 @@
 <!DOCTYPE html>
-<html lang="sq">
+<html lang="sq-AL">
 <head>
   <meta charset="UTF-8">
-  <title>Ditar Personal - INFO 2025</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  
-  <!-- Firebase SDKs për përdorim direkt në browser -->
-  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore-compat.js"></script>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ditari Im</title>
   <style>
     body {
-      font-family: sans-serif;
-      background: #f8f9fa;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       padding: 20px;
+      width: 100%;
+      max-width: 600px;
     }
-    h1, h2 { color: #333; }
-    input, textarea {
-      width: 100%; padding: 10px; margin: 5px 0;
+
+    h1 {
+      text-align: center;
+      color: #333;
     }
+
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    input[type="text"], input[type="date"], textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
     button {
-      padding: 10px 15px; margin: 5px 5px 15px 0;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 10px 0;
+      cursor: pointer;
+      border-radius: 4px;
     }
-    .hidden { display: none; }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
     .entry {
-      background: #fff; padding: 10px; margin: 10px 0;
-      border-left: 4px solid #007bff; border-radius: 4px;
+      margin-top: 20px;
     }
-    .entry h3 { margin: 0; }
-    .entry small { color: #666; }
+
+    .entry p {
+      margin: 5px 0;
+    }
+
+    .entry .date {
+      font-weight: bold;
+      color: #555;
+    }
+
+    .entry .title {
+      font-size: 1.2em;
+      color: #333;
+    }
+
+    .entry .description {
+      color: #666;
+    }
   </style>
 </head>
 <body>
 
-  <h1>Ditar Personal - INFO 2025</h1>
+  <div class="container">
+    <h1>Ditari Im</h1>
 
-  <!-- Seksioni për login/register -->
-  <div id="auth-section">
-    <input type="email" id="email" placeholder="Email" required>
-    <input type="password" id="password" placeholder="Fjalëkalimi" required>
-    <button onclick="register()">Regjistrohu</button>
-    <button onclick="login()">Hyr</button>
-  </div>
-
-  <!-- Seksioni i ditarit -->
-  <div id="diary-section" class="hidden">
-    <h2>Shto hyrje në ditar</h2>
-    <form id="entry-form">
-      <input type="text" id="title" placeholder="Titulli" required>
-      <input type="date" id="eventDate" placeholder="Data e ngjarjes">
-      <textarea id="description" rows="5" placeholder="Përshkrimi" required></textarea>
-      <button type="submit">Ruaj hyrjen</button>
+    <form id="diaryForm">
+      <table>
+        <tr>
+          <td><label for="entryDate">Data e Ngjarjes:</label></td>
+          <td><input type="date" id="entryDate" name="entryDate"></td>
+        </tr>
+        <tr>
+          <td><label for="entryTitle">Titulli:</label></td>
+          <td><input type="text" id="entryTitle" name="entryTitle" required></td>
+        </tr>
+        <tr>
+          <td><label for="entryDescription">Përshkrimi:</label></td>
+          <td><textarea id="entryDescription" name="entryDescription" rows="4" required></textarea></td>
+        </tr>
+      </table>
+      <button type="submit">Ruaj Hyrjen</button>
     </form>
 
-    <h2>Hyrjet e tua</h2>
-    <div id="entries"></div>
-
-    <button onclick="logout()">Dil</button>
+    <div id="entries" class="entry"></div>
   </div>
 
   <script>
-    // Konfigurimi yt Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyBuvqnhgd_0b8SrGhDKt-0B2GP57q0aWkc",
-      authDomain: "info-2025.firebaseapp.com",
-      projectId: "info-2025",
-      storageBucket: "info-2025.firebasestorage.app",
-      messagingSenderId: "684808837002",
-      appId: "1:684808837002:web:1089de9b58e06cbbd95a73",
-      measurementId: "G-Q9513D0LXS"
-    };
+    document.getElementById('diaryForm').addEventListener('submit', function(event) {
+      event.preventDefault();
 
-    // Inicializimi Firebase
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+      const date = document.getElementById('entryDate').value || new Date().toLocaleDateString();
+      const title = document.getElementById('entryTitle').value;
+      const description = document.getElementById('entryDescription').value;
 
-    // Regjistrim
-    function register() {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-      auth.createUserWithEmailAndPassword(email, password)
-        .then(() => alert("Regjistrimi u krye me sukses!"))
-        .catch(error => alert("Gabim: " + error.message));
-    }
+      const entryHTML = `
+        <div class="entry">
+          <p class="date">Data: ${date}</p>
+          <p class="title">${title}</p>
+          <p class="description">${description}</p>
+        </div>
+      `;
 
-    // Login
-    function login() {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-      auth.signInWithEmailAndPassword(email, password)
-        .catch(error => alert("Gabim: " + error.message));
-    }
+      document.getElementById('entries').insertAdjacentHTML('beforeend', entryHTML);
 
-    // Logout
-    function logout() {
-      auth.signOut();
-    }
-
-    // Kontroll i përdoruesit
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        document.getElementById("auth-section").classList.add("hidden");
-        document.getElementById("diary-section").classList.remove("hidden");
-        loadEntries(user.uid);
-      } else {
-        document.getElementById("auth-section").classList.remove("hidden");
-        document.getElementById("diary-section").classList.add("hidden");
-      }
+      document.getElementById('diaryForm').reset();
     });
-
-    // Shto hyrje
-    document.getElementById("entry-form").addEventListener("submit", function(e) {
-      e.preventDefault();
-      const title = sanitize(document.getElementById("title").value);
-      const description = sanitize(document.getElementById("description").value);
-      const eventDate = document.getElementById("eventDate").value || null;
-      const user = auth.currentUser;
-      if (!user) return;
-
-      db.collection("entries").add({
-        uid: user.uid,
-        title,
-        description,
-        eventDate,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      }).then(() => {
-        e.target.reset();
-        loadEntries(user.uid);
-      }).catch(error => alert("Gabim gjatë ruajtjes: " + error.message));
-    });
-
-    // Ngarko hyrjet
-    function loadEntries(uid) {
-      db.collection("entries")
-        .where("uid", "==", uid)
-        .orderBy("createdAt", "desc")
-        .get()
-        .then(snapshot => {
-          const container = document.getElementById("entries");
-          container.innerHTML = "";
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            const div = document.createElement("div");
-            div.className = "entry";
-            div.innerHTML = `
-              <h3>${data.title}</h3>
-              <small>Data e ngjarjes: ${data.eventDate || "Jo e dhënë"}</small><br>
-              <p>${data.description}</p>
-              <small>Krijuar më: ${data.createdAt?.toDate().toLocaleString() || ""}</small>
-            `;
-            container.appendChild(div);
-          });
-        }).catch(error => console.error("Gabim gjatë ngarkimit: ", error));
-    }
-
-    // Sanitizim i thjeshtë për të parandaluar XSS
-    function sanitize(str) {
-      return str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
   </script>
+
 </body>
 </html>
