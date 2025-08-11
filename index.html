@@ -79,7 +79,8 @@
     const db = firebase.firestore();
 
     // Vetëm ky user lejohet
-    const allowedEmail = "yhasmuja@gmail.com"; // <-- ndrysho me emailin tënd
+    const allowedEmail = "emailyt@example.com"; // <-- vendos emailin tënd
+    const allowedEmailLower = allowedEmail.toLowerCase();
 
     // Regjistrim
     function register() {
@@ -106,7 +107,7 @@
     // Kontroll përdoruesi
     auth.onAuthStateChanged(user => {
       if (user) {
-        if (user.email !== allowedEmail) {
+        if (user.email.toLowerCase() !== allowedEmailLower) {
           alert("Nuk ke akses në këtë aplikacion!");
           auth.signOut();
           return;
@@ -143,7 +144,7 @@
     // Ngarko hyrjet (real-time)
     function loadEntries(uid) {
       db.collection("entries")
-        .where("uid", "==", uid)
+        .where("uid", "==", uid) // shfaq vetëm hyrjet e këtij useri
         .orderBy("createdAt", "desc")
         .onSnapshot(snapshot => {
           const tbody = document.getElementById("entries");
@@ -152,12 +153,12 @@
             const data = doc.data();
             const tr = document.createElement("tr");
             tr.innerHTML = `
-              <td>${data.title}</td>
+              <td>${data.title || ""}</td>
               <td>${data.eventDate || "Jo e dhënë"}</td>
-              <td>${data.description}</td>
+              <td>${data.description || ""}</td>
               <td>${data.createdAt?.toDate().toLocaleString() || ""}</td>
               <td>
-                <button class="btn btn-warning btn-sm" onclick="editEntry('${doc.id}', '${data.title}', '${data.description}', '${data.eventDate || ""}')">✏️</button>
+                <button class="btn btn-warning btn-sm" onclick="editEntry('${doc.id}', '${data.title || ""}', '${data.description || ""}', '${data.eventDate || ""}')">✏️</button>
                 <button class="btn btn-danger btn-sm" onclick="deleteEntry('${doc.id}')">🗑️</button>
               </td>
             `;
@@ -194,4 +195,3 @@
   </script>
 </body>
 </html>
-
