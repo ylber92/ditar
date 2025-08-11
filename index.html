@@ -4,64 +4,66 @@
   <meta charset="UTF-8">
   <title>Ditar Personal - INFO 2025</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  
-  <!-- Firebase SDKs për përdorim direkt në browser -->
+
+  <!-- Bootstrap CSS për UI më të bukur -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore-compat.js"></script>
-
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #f8f9fa;
-      padding: 20px;
-    }
-    h1, h2 { color: #333; }
-    input, textarea {
-      width: 100%; padding: 10px; margin: 5px 0;
-    }
-    button {
-      padding: 10px 15px; margin: 5px 5px 15px 0;
-    }
-    .hidden { display: none; }
-    .entry {
-      background: #fff; padding: 10px; margin: 10px 0;
-      border-left: 4px solid #007bff; border-radius: 4px;
-    }
-    .entry h3 { margin: 0; }
-    .entry small { color: #666; }
-  </style>
 </head>
-<body>
+<body class="bg-light p-4">
 
-  <h1>Ditar Personal - INFO 2025</h1>
+  <div class="container">
+    <h1 class="text-center mb-4">📓 Ditar Personal - INFO 2025</h1>
 
-  <!-- Seksioni për login/register -->
-  <div id="auth-section">
-    <input type="email" id="email" placeholder="Email" required>
-    <input type="password" id="password" placeholder="Fjalëkalimi" required>
-    <button onclick="register()">Regjistrohu</button>
-    <button onclick="login()">Hyr</button>
-  </div>
+    <!-- Seksioni Login/Register -->
+    <div id="auth-section" class="card p-4 shadow-sm">
+      <input type="email" id="email" class="form-control mb-2" placeholder="Email" required>
+      <input type="password" id="password" class="form-control mb-3" placeholder="Fjalëkalimi" required>
+      <button class="btn btn-primary me-2" onclick="login()">Hyr</button>
+      <button class="btn btn-secondary" onclick="register()">Regjistrohu</button>
+    </div>
 
-  <!-- Seksioni i ditarit -->
-  <div id="diary-section" class="hidden">
-    <h2>Shto hyrje në ditar</h2>
-    <form id="entry-form">
-      <input type="text" id="title" placeholder="Titulli" required>
-      <input type="date" id="eventDate" placeholder="Data e ngjarjes">
-      <textarea id="description" rows="5" placeholder="Përshkrimi" required></textarea>
-      <button type="submit">Ruaj hyrjen</button>
-    </form>
+    <!-- Seksioni Ditarit -->
+    <div id="diary-section" class="hidden card p-4 shadow-sm mt-4">
+      <h4>Shto hyrje</h4>
+      <form id="entry-form" class="row g-2 mb-4">
+        <div class="col-md-4">
+          <input type="text" id="title" class="form-control" placeholder="Titulli" required>
+        </div>
+        <div class="col-md-3">
+          <input type="date" id="eventDate" class="form-control">
+        </div>
+        <div class="col-md-5">
+          <input type="text" id="description" class="form-control" placeholder="Përshkrimi" required>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-success">Ruaj hyrjen</button>
+        </div>
+      </form>
 
-    <h2>Hyrjet e tua</h2>
-    <div id="entries"></div>
+      <h4>Hyrjet e tua</h4>
+      <table class="table table-striped table-bordered align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th>Titulli</th>
+            <th>Data e ngjarjes</th>
+            <th>Përshkrimi</th>
+            <th>Krijuar më</th>
+            <th>Veprime</th>
+          </tr>
+        </thead>
+        <tbody id="entries"></tbody>
+      </table>
 
-    <button onclick="logout()">Dil</button>
+      <button class="btn btn-danger mt-3" onclick="logout()">Dil</button>
+    </div>
   </div>
 
   <script>
-    // Konfigurimi yt Firebase
+    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyBuvqnhgd_0b8SrGhDKt-0B2GP57q0aWkc",
       authDomain: "info-2025.firebaseapp.com",
@@ -72,46 +74,48 @@
       measurementId: "G-Q9513D0LXS"
     };
 
-    // Inicializimi Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // Regjistrim
+    // Vetëm ky user lejohet
+    const allowedEmail = "emailyyt@example.com"; // <- ndryshoje me emailin tënd
+
     function register() {
       const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value.trim();
       auth.createUserWithEmailAndPassword(email, password)
         .then(() => alert("Regjistrimi u krye me sukses!"))
-        .catch(error => alert("Gabim: " + error.message));
+        .catch(err => alert("Gabim: " + err.message));
     }
 
-    // Login
     function login() {
       const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value.trim();
       auth.signInWithEmailAndPassword(email, password)
-        .catch(error => alert("Gabim: " + error.message));
+        .catch(err => alert("Gabim: " + err.message));
     }
 
-    // Logout
     function logout() {
       auth.signOut();
     }
 
-    // Kontroll i përdoruesit
     auth.onAuthStateChanged(user => {
       if (user) {
-        document.getElementById("auth-section").classList.add("hidden");
+        if (user.email !== allowedEmail) {
+          alert("Nuk ke akses në këtë aplikacion!");
+          auth.signOut();
+          return;
+        }
+        document.getElementById("auth-section").classList.add("d-none");
         document.getElementById("diary-section").classList.remove("hidden");
         loadEntries(user.uid);
       } else {
-        document.getElementById("auth-section").classList.remove("hidden");
+        document.getElementById("auth-section").classList.remove("d-none");
         document.getElementById("diary-section").classList.add("hidden");
       }
     });
 
-    // Shto hyrje
     document.getElementById("entry-form").addEventListener("submit", function(e) {
       e.preventDefault();
       const title = sanitize(document.getElementById("title").value);
@@ -128,35 +132,53 @@
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       }).then(() => {
         e.target.reset();
-        loadEntries(user.uid);
       }).catch(error => alert("Gabim gjatë ruajtjes: " + error.message));
     });
 
-    // Ngarko hyrjet
     function loadEntries(uid) {
       db.collection("entries")
         .where("uid", "==", uid)
         .orderBy("createdAt", "desc")
-        .get()
-        .then(snapshot => {
-          const container = document.getElementById("entries");
-          container.innerHTML = "";
+        .onSnapshot(snapshot => {
+          const tbody = document.getElementById("entries");
+          tbody.innerHTML = "";
           snapshot.forEach(doc => {
             const data = doc.data();
-            const div = document.createElement("div");
-            div.className = "entry";
-            div.innerHTML = `
-              <h3>${data.title}</h3>
-              <small>Data e ngjarjes: ${data.eventDate || "Jo e dhënë"}</small><br>
-              <p>${data.description}</p>
-              <small>Krijuar më: ${data.createdAt?.toDate().toLocaleString() || ""}</small>
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${data.title}</td>
+              <td>${data.eventDate || "Jo e dhënë"}</td>
+              <td>${data.description}</td>
+              <td>${data.createdAt?.toDate().toLocaleString() || ""}</td>
+              <td>
+                <button class="btn btn-warning btn-sm" onclick="editEntry('${doc.id}', '${data.title}', '${data.description}', '${data.eventDate}')">✏️</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteEntry('${doc.id}')">🗑️</button>
+              </td>
             `;
-            container.appendChild(div);
+            tbody.appendChild(tr);
           });
-        }).catch(error => console.error("Gabim gjatë ngarkimit: ", error));
+        });
     }
 
-    // Sanitizim i thjeshtë për të parandaluar XSS
+    function deleteEntry(id) {
+      if (confirm("A je i sigurt që do ta fshish këtë hyrje?")) {
+        db.collection("entries").doc(id).delete();
+      }
+    }
+
+    function editEntry(id, title, description, eventDate) {
+      const newTitle = prompt("Titulli i ri:", title);
+      const newDesc = prompt("Përshkrimi i ri:", description);
+      const newDate = prompt("Data e ngjarjes (YYYY-MM-DD):", eventDate || "");
+      if (newTitle && newDesc) {
+        db.collection("entries").doc(id).update({
+          title: sanitize(newTitle),
+          description: sanitize(newDesc),
+          eventDate: newDate || null
+        });
+      }
+    }
+
     function sanitize(str) {
       return str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
